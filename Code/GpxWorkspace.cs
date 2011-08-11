@@ -1,7 +1,4 @@
-// Based on ESRI sample code for Simple Point Plugin
-
 using System;
-using System.Collections.Generic;
 using System.IO;
 using ESRI.ArcGIS.esriSystem;
 using ESRI.ArcGIS.Geodatabase;
@@ -17,7 +14,6 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
         private const string MetadataExtension = ".gpx.xml";
 
         private readonly string _workspacePath;
-        readonly Dictionary<string, GpxDataset> _datasets = new Dictionary<string, GpxDataset>();
 
         // The constructor should only be called by the Factory's OpenWorkspace() method
         // which verified that the path was valid just before the workspace was created.
@@ -38,7 +34,6 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
 		public IArray get_DatasetNames(esriDatasetType datasetType)
 		{
             IArray datasets = new ArrayClass();
-            //_datasets.Clear();
 
             if (datasetType == esriDatasetType.esriDTAny || datasetType != esriDatasetType.esriDTFeatureDataset)
             {
@@ -51,9 +46,7 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
                         string localName = Path.GetFileNameWithoutExtension(file);
                         if (!String.IsNullOrEmpty(localName))
                         {
-                            var gpx = new GpxDataset(_workspacePath, localName);
-                            datasets.Add(gpx);
-                            //_datasets.Add(localName, gpx);
+                            datasets.Add(new GpxDataset(_workspacePath, localName));
                         }
                     }
                 }
@@ -77,8 +70,6 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
 
 		public IPlugInDatasetHelper OpenDataset(string localName)
 		{
-		    //caller gets localname from get_DatasetNames, so it should be a valid key
-            //return _datasets[localName];
 		    return new GpxDataset(_workspacePath, localName);
 		}
 
