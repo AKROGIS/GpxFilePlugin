@@ -1,0 +1,1 @@
+"C:\Program Files (x86)\Common Files\ArcGIS\bin\ESRIRegAsm.exe" "C:\Users\resarwas\Documents\Visual Studio 2010\Projects\GpxFilePlugin\Code\bin\Debug\GpxPlugin.dll" /p:Desktop
