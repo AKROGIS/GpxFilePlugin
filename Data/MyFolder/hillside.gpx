@@ -2,6 +2,13 @@
 <gpx xmlns="http://www.topografix.com/GPX/1/1" xmlns:tc2="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tp1="http://www.garmin.com/xmlschemas/TrackPointExtension/v1" version="1.1" creator="TC2 to GPX11 XSLT stylesheet" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd http://www.garmin.com/xmlschemas/TrackPointExtension/v1 http://www.garmin.com/xmlschemas/TrackPointExtensionv1.xsd">
     <trk>
         <name>2010-06-26T20:03:46Z</name>
+		<link href="http://www.google.com">
+			<text>da google</text>
+		</link>
+		<link href="http://www.nps.gov/nps/templates/images/logos/footer.gif">
+			<text>NPS Logo (BW)</text>
+			<type>image/gif</type>
+		</link>
         <trkseg>
             <trkpt lat="61.1375794" lon="-149.7523635">
                 <ele>156.3515625</ele>

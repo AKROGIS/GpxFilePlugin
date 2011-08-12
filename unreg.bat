@@ -2,7 +2,7 @@
 rem %cd% does not work when "run as administrator" on win7 
 rem set dll=%cd%\GpxPlugin.dll
 set dll=%0%
-set dll=%dll:reg.bat=GpxPlugin.dll%
+set dll=%dll:unreg.bat=GpxPlugin.dll%
 
 if defined CommonProgramFiles(x86) goto x64
 	rem not 64bit OS, assume 32bit
@@ -21,5 +21,5 @@ if defined CommonProgramFiles(x86) goto x64
 	pause
 	goto end
 :doit
-	%regasm% %dll% /p:Desktop
+	%regasm% %dll% /u /p:Desktop
 :end

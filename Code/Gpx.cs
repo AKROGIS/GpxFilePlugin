@@ -1,11 +1,16 @@
-﻿//TODO - Casting Xelement to Nullable<T> can throw FormatException if value is not in the right format.
+﻿//TODO - Figure out how to enable text fields to be used for labeling, symbolgy and query defs.
+//       First (non-oid/shape) field magically works for labels only,
+//       specifying a length for text fields did not fix it.  
+//TODO - do I need to determine correct length for string fields.  not specifying the length seems to work
+//TODO - Casting Xelement to Nullable<T> can throw FormatException if value is not in the right format.
 //       Trap and convert to null.  If I let the exception bubble up, it will render a file unreadable due to minor formatting problems. 
-//TODO - Scan file first to correctly set HasZ.  Currently assuming all geometry has Z values (is this a problem?).
-//TODO - Remove unused attributes from field list
-//TODO - ArcCatalog is not displaying information like file size/date 
+//TODO - Add logic to correctly set "HasZ".  Currently assuming all geometry has Z values (is this a problem?).
+//TODO - Remove unused attributes from field list.  Currently creating a field list with entire schema
+//TODO - ArcCatalog is not displaying information like file size/date
+//TODO - All tracks and route vertices render at one elevation, despite Z values on vertices (I expect polygons to have a single Z value, but not polylines)
 //TODO - Can we create ArcGIS metadata from the metadata element in the Gpx file?
 //TODO - Create an attribute for each sub element of extensions (always of string type despite potential for conversion)
-//TODO - for tags with multiplicity > 1 (like link, and possibly subelements of extension) need to create muultiple attributes i.e. link1, link2, ....
+//TODO - for tags with multiplicity > 1 (like link, and possibly sub-elements of extension) need to create multiple attributes i.e. link1, link2, ....
 //TODO - What to do with link sub-elements?
 //       I am currently ignoring them because Desktop can deal with a href, but not html. Can I do better?
 //TODO - Explore object creation and lifetime.  The API is not clear on when these helper classes are called by Desktop.
@@ -276,7 +281,6 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
             field.Name_2 = "name";
             field.AliasName_2 = "Name";
             field.Type_2 = esriFieldType.esriFieldTypeString;
-            //field.Length_2 = ???;
             fields.AddField(field);
 
             field = new FieldClass();
@@ -298,15 +302,16 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
             fields.AddField(field);
 
             field = new FieldClass();
-            field.Name_2 = "type";
-            field.AliasName_2 = "Type";
+            field.Name_2 = "link";
+            field.AliasName_2 = "Hyperlink";
+            //field.Type_2 = esriFieldType.esriFieldTypeXML;
+            //XML datatype is not fully supported in Desktop (i.e. no value is displayed, and export to shapefile will fail)
             field.Type_2 = esriFieldType.esriFieldTypeString;
             fields.AddField(field);
 
             field = new FieldClass();
-            field.Name_2 = "link";
-            //field.Type_2 = esriFieldType.esriFieldTypeXML;
-            //XML datatype is not fully supported in Desktop (i.e. no value is displayed, and export to shapefile will fail)
+            field.Name_2 = "type";
+            field.AliasName_2 = "Type";
             field.Type_2 = esriFieldType.esriFieldTypeString;
             fields.AddField(field);
 
@@ -321,7 +326,7 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
             {
                 field = new FieldClass();
                 field.Name_2 = "number";
-                field.Name_2 = "Vertices";
+                field.AliasName_2 = "Vertex Count";
                 field.Type_2 = esriFieldType.esriFieldTypeInteger;
                 fields.AddField(field);
             }
