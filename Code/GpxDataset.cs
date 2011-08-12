@@ -13,6 +13,8 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
 			_gpx = new Gpx(System.IO.Path.Combine(workspace, dataset + ".gpx"));
 		}
 
+
+
 		#region IPlugInDatasetHelper Members
 
 		public IEnvelope Bounds
@@ -37,24 +39,22 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
 
         public int ClassCount
         {
-            get { return _gpx.FeatureTypes.Length; }
+            get { return _gpx.FeatureClasses.Length; }
         }
 
         public string get_ClassName(int classIndex)
 		{
             if (classIndex < 0 || ClassCount <= classIndex)
                 return "Undefined";
-            return _gpx.FeatureTypes[classIndex].Name;
+            return _gpx.FeatureClasses[classIndex].Name;
 		}
 
 		public int get_ClassIndex(string name)
 		{
-			for (int i = 0; i < ClassCount; i++)
-			{
-				if (name.Equals(get_ClassName(i)))
-					return i;
-			}
-			return -1;
+            for (int i = 0; i < _gpx.FeatureClasses.Length; i++)
+		        if (name == _gpx.FeatureClasses[i].Name)
+		            return i;
+		    return -1;
 		}
 		
 		public IPlugInCursorHelper FetchAll(int classIndex, string whereClause, object fieldMap)
@@ -75,6 +75,8 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
 		}
 
 		#endregion
+
+
 
 
 		#region IPlugInDatasetInfo Members	

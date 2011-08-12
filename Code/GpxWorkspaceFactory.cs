@@ -8,10 +8,6 @@ using ESRI.ArcGIS.Geodatabase;
 
 namespace NPS.AKRO.ArcGIS.GpxPlugin
 {
-    /// <summary>
-    /// Summary description for Gpx Workspace Factory.
-    /// </summary>
-    /// 
     [ClassInterface(ClassInterfaceType.None)]
     [Guid("076B45C4-7E51-401C-B50B-68D1CCE8DDA9")]
     [ProgId("GpxPlugin.GpxFactoryHelper")]
@@ -35,7 +31,7 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
 
         private const string Extension = ".gpx";
 
-        #region IPlugInWorkspaceFactoryHelper Members
+        #region Required members for implementing IPlugInWorkspaceFactoryHelper
 
         public string get_DatasetDescription(esriDatasetType datasetType)
         {
@@ -108,10 +104,10 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
             if (!System.IO.Directory.Exists(parentDirectory))
                 return null;
 
-            if (fileNames == null)	//don't have to check .gpx file
+            if (fileNames == null)
                 return parentDirectory;
 
-            //HIGHLIGHT: GetWorkspaceString - claim and remove file names from list
+            //claim file names by removing them from the list
             string fileName;
             bool fileFound = false;
             while ((fileName = fileNames.Next()) != null)
