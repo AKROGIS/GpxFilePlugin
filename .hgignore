@@ -5,3 +5,4 @@ glob:Code/GpxPlugin.csproj.*
 glob:*.pdf
 glob:Code/_ReSharper.*/
 glob:Code/*ReSharper.user
+glob:.svn

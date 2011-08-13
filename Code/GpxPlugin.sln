@@ -2,7 +2,18 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GpxPlugin", "GpxPlugin.csproj", "{DF72BC8D-E763-44FF-B419-D4C047B34548}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{69D9EF96-F374-4C97-9EB1-77D4709D1505}"
+	ProjectSection(SolutionItems) = preProject
+		..\HowTo.txt = ..\HowTo.txt
+		..\reg.bat = ..\reg.bat
+		..\unreg.bat = ..\unreg.bat
+	EndProjectSection
+EndProject
 Global
+	GlobalSection(SubversionScc) = preSolution
+		Svn-Managed = True
+		Manager = AnkhSVN - Subversion Support for Visual Studio
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
