@@ -108,7 +108,7 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
 
                 return _xmlRoot.Name.LocalName == gpxRootElement &&
                        (_xmlNamespace.NamespaceName == gpx10 ||
-                        _xmlNamespace.NamespaceName == gpx11   );
+                        _xmlNamespace.NamespaceName == gpx11);
             }
         }
 
@@ -188,7 +188,7 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
                 return null;
 
             IEnvelope bounds = new EnvelopeClass { SpatialReference = SpatialReference };
-            bounds.PutCoords((double)xmin,(double)ymin,(double)xmax,(double)ymax);
+            bounds.PutCoords((double)xmin, (double)ymin, (double)xmax, (double)ymax);
             return bounds;
         }
 

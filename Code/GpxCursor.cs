@@ -81,8 +81,8 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
         /// </exception>
 		public void NextRecord()
 		{
-			if (_isFinished)
-				return;
+            if (_isFinished)
+                return;
 
             //fetch all
             if (_queryId < 1 && (_queryEnvelope == null || _queryEnvelope.IsEmpty))
@@ -109,7 +109,7 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
                     AdvanceCursor();
             }
             //fetch by id and envelope (not allowed by the interface)
-            else 
+            else
             {
                 throw new NotImplementedException();
             }
@@ -117,18 +117,18 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
 
 	    private void AdvanceCursor()
 	    {
-	        _currentId++;
-	        if (_enumerator.MoveNext() == false)
-	            CloseCursor();
-	    }
+            _currentId++;
+            if (_enumerator.MoveNext() == false)
+                CloseCursor();
+        }
 
 	    private void CloseCursor()
 	    {
-	        _isFinished = true;
-	        _currentId = -1;
+            _isFinished = true;
+            _currentId = -1;
             // COMException with HRESULT = E_FAIL
-	        throw new COMException("End of Gpx Plugin cursor", unchecked((int)0x80004005));
-	    }
+            throw new COMException("End of Gpx Plugin cursor", unchecked((int)0x80004005));
+        }
 
 	    /// <summary>
         /// QueryShape uses the data in the current record to modify the provided geometry.
@@ -146,11 +146,11 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
             if (_enumerator.Current == null)
             {
                 geometry.SetEmpty();
-                return;               
+                return;
             }
- 
+
             if (geometry is IPoint)
-                BuildPoint((IPoint) geometry, _enumerator.Current);
+                BuildPoint((IPoint)geometry, _enumerator.Current);
             else
             {
                 // since each polyline/polygon can be a different size, it is not easy to reuse the geometry
@@ -182,7 +182,7 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
             if (row == null || _enumerator.Current == null)
                 return -1;
 
-            for (int i = 0; i < _fieldMap.Length; i++ )
+            for (int i = 0; i < _fieldMap.Length; i++)
             {
                 if (_fieldMap[i] == -1)
                     continue;
@@ -191,13 +191,13 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
                 switch (field.Type)
                 {
                     case esriFieldType.esriFieldTypeInteger:
-                        row.Value[i] = (int?) _enumerator.Current.GetElement(field.Name);
+                        row.Value[i] = (int?)_enumerator.Current.GetElement(field.Name);
                         break;
                     case esriFieldType.esriFieldTypeDouble:
-                        row.Value[i] = (double?) _enumerator.Current.GetElement(field.Name);
+                        row.Value[i] = (double?)_enumerator.Current.GetElement(field.Name);
                         break;
                     case esriFieldType.esriFieldTypeDate:
-                        row.Value[i] = (DateTime?) _enumerator.Current.GetElement(field.Name);
+                        row.Value[i] = (DateTime?)_enumerator.Current.GetElement(field.Name);
                         break;
                     case esriFieldType.esriFieldTypeString:
                         //FIXME - if field.Name = "link", then there may be multiple Elements, but we are only getting the first
@@ -207,10 +207,9 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
                             if (field.Name == "extensions")
                                 row.Value[i] = v.ToString();  //FIXME - omit the surrounding <extension> tag; only provide the child elements 
                             else if (field.Name == "link")
-                                row.Value[i] = (string) v.Attribute("href");
+                                row.Value[i] = (string)v.Attribute("href");
                             else
                                 row.Value[i] = v.Value;
-                           
                         }
                         break;
                 }
@@ -225,9 +224,9 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
         private void BuildPoly(IGeometry geometry, XElement xElement, bool close)
         {
             if (xElement.Name.LocalName == "rte")
-                BuildSegment("rtept", (IPointCollection) geometry, xElement, close);
+                BuildSegment("rtept", (IPointCollection)geometry, xElement, close);
             else if (xElement.Name.LocalName == "trk")
-                BuildTrack((IGeometryCollection) geometry, xElement, close);
+                BuildTrack((IGeometryCollection)geometry, xElement, close);
             if (!close)
                 ((IZAware)geometry).ZAware = true;
         }
@@ -242,7 +241,7 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
                 else
                     path = new PathClass();
                 path.SpatialReference = ((IGeometry)paths).SpatialReference;
-                BuildSegment("trkpt", (IPointCollection) path, ele, close);
+                BuildSegment("trkpt", (IPointCollection)path, ele, close);
                 paths.AddGeometry(path);
             }
         }

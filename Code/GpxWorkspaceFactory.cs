@@ -40,7 +40,7 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
 
         public string get_WorkspaceDescription(bool plural)
         {
-            return plural ? "GPX (Gps Exchange) Files" : 
+            return plural ? "GPX (Gps Exchange) Files" :
                             "GPX (Gps Exchange) File";
         }
 
@@ -78,7 +78,7 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
 
         public UID WorkspaceFactoryTypeID
         {
-            get { return new UIDClass {Value = "{0E9FECE1-C40C-44B1-9257-4F632257F340}"}; }
+            get { return new UIDClass { Value = "{0E9FECE1-C40C-44B1-9257-4F632257F340}" }; }
         }
 
         public bool IsWorkspace(string path)
@@ -94,7 +94,7 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
         }
 
         public IPlugInWorkspaceHelper OpenWorkspace(string path)
-        { 
+        {
             //Any valid folder path can be a Gpx Workspace
             return System.IO.Directory.Exists(path) ? new GpxWorkspace(path) : null;
         }
