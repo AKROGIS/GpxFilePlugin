@@ -30,6 +30,7 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
         #endregion
 
         private const string Extension = ".gpx";
+        private const string MetadataExtension = ".gpx.xml";
 
         #region Required members for implementing IPlugInWorkspaceFactoryHelper
 
@@ -115,9 +116,9 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
                 if (fileNames.IsDirectory())
                     continue;
 
-                //FIXME - I should also claim Extension.xml
                 var ext = System.IO.Path.GetExtension(fileName);
-                if (ext != null && ext.Equals(Extension))
+                if (ext != null && ext.Equals(Extension) ||
+                    fileName.EndsWith(MetadataExtension,StringComparison.InvariantCultureIgnoreCase))
                 {
                     fileFound = true;
                     fileNames.Remove();

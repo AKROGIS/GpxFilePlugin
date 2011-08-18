@@ -4,13 +4,15 @@ using ESRI.ArcGIS.Geometry;
 
 namespace NPS.AKRO.ArcGIS.GpxPlugin
 {
-    internal class GpxDataset : IPlugInDatasetHelper, IPlugInDatasetInfo
+    internal class GpxDataset : IPlugInDatasetHelper, IPlugInDatasetInfo, IPlugInFileOperations
     {
+        private const string Extension = ".gpx";
+        private const string XmlExtension = ".xml";
         private readonly Gpx _gpx;
 
         public GpxDataset(string workspace, string dataset)
         {
-            _gpx = new Gpx(System.IO.Path.Combine(workspace, dataset + ".gpx"));
+            _gpx = new Gpx(System.IO.Path.Combine(workspace, dataset + Extension));
         }
 
 
@@ -116,6 +118,60 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
         public string ShapeFieldName
         {
             get { return "Shape"; }
+        }
+
+        #endregion
+
+
+
+
+        #region IPlugInFileOperations Members
+
+        public bool CanCopy()
+        {
+            return true;
+        }
+
+        public bool CanDelete()
+        {
+            return true;
+        }
+
+        public bool CanRename()
+        {
+            return true;
+        }
+
+        public void Copy(string copyName, IWorkspace copyWorkspace)
+        {
+            string newPath = System.IO.Path.Combine(copyWorkspace.PathName, copyName + Extension);
+            System.IO.File.Copy(_gpx.Path, newPath);
+            try
+            {
+                System.IO.File.Copy(_gpx.Path + XmlExtension, newPath + XmlExtension);
+            }
+            catch (System.IO.FileNotFoundException) {}
+        }
+
+        public void Delete()
+        {
+            System.IO.File.Delete(_gpx.Path);
+            System.IO.File.Delete(_gpx.Path + XmlExtension);  //does not throw if file does not exist
+            //if caller tries to use this datasource now it will throw
+        }
+
+        public string Rename(string name)
+        {
+            string newPath = _gpx.Path.Replace(_gpx.Name, name);
+            System.IO.File.Move(_gpx.Path, newPath);
+            try
+            {
+                System.IO.File.Move(_gpx.Path + XmlExtension, newPath + XmlExtension);
+            }
+            catch (System.IO.FileNotFoundException) { }
+            // _gpx now references a non-existant file.
+            // OK, because this dataset is never used again.
+            return name;
         }
 
         #endregion
