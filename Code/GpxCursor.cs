@@ -182,9 +182,9 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
             if (row == null || _enumerator.Current == null)
                 return -1;
 
-            foreach (var i in _fieldMap)
+            for (int i = 0; i < _fieldMap.Length; i++ )
             {
-                if (i == -1)
+                if (_fieldMap[i] == -1)
                     continue;
 
                 IField field = row.Fields.Field[i];

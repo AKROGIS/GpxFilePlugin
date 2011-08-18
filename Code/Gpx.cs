@@ -1,7 +1,4 @@
-﻿//TODO - Figure out how to enable text fields to be used for labeling, symbolgy and query defs.
-//       First (non-oid/shape) field magically works for labels only,
-//       specifying a length for text fields did not fix it.  
-//TODO - do I need to determine correct length for string fields.  not specifying the length seems to work
+﻿//TODO - Do I need to determine correct length for string fields?  Not specifying the length seems to work
 //TODO - Casting Xelement to Nullable<T> can throw FormatException if value is not in the right format.
 //       Trap and convert to null.  If I let the exception bubble up, it will render a file unreadable due to minor formatting problems. 
 //TODO - Add logic to correctly set "HasZ".  Currently assuming all geometry has Z values (is this a problem?).
@@ -93,8 +90,9 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
                 if (!IsValidGpxFile)
                     _xmlRoot = null;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                System.Diagnostics.Trace.TraceError(ex.ToString());
                 _xmlRoot = null;
             }
             _loaded = true; //even if we fail, at least we know we tried.
