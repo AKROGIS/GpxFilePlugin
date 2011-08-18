@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using ESRI.ArcGIS.Geodatabase;
+﻿using ESRI.ArcGIS.Geodatabase;
 using ESRI.ArcGIS.Geometry;
 
 namespace NPS.AKRO.ArcGIS.GpxPlugin
