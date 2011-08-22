@@ -34,6 +34,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml;
 using System.Xml.Linq;
 using ESRI.ArcGIS.Geodatabase;
 using ESRI.ArcGIS.Geometry;
@@ -85,7 +86,25 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
         {
             try
             {
-                _xmlRoot = XElement.Load(_path);
+#if NOHACK 
+                //_xmlRoot = XElement.Load(_path);
+                //System.Diagnostics.Trace.TraceInformation("Loaded file " + _path);
+
+#else //define the namespace 'gpxx:' in order to read old DNR Garmin files which use this undeclared namespace
+                
+                //TODO - loop on XmlExceptions, adding any other undeclared namespaces
+                var nt = new NameTable();
+                var nsmgr = new XmlNamespaceManager(nt);
+                nsmgr.AddNamespace("gpxx", "urn:ignore");
+                var pc = new XmlParserContext(null, nsmgr, null, XmlSpace.None);
+                using (var stream = new System.IO.FileStream(_path, System.IO.FileMode.Open))
+                {
+                    var tr = new XmlTextReader(stream, XmlNodeType.Document, pc);
+                    _xmlRoot = XElement.Load(tr);
+                    System.Diagnostics.Trace.TraceInformation("Loaded file " + _path);
+                }
+#endif 
+
                 _xmlNamespace = _xmlRoot.GetDefaultNamespace();
                 if (!IsValidGpxFile)
                     _xmlRoot = null;
@@ -95,7 +114,7 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
                 System.Diagnostics.Trace.TraceError(ex.ToString());
                 _xmlRoot = null;
             }
-            _loaded = true; //even if we fail, at least we know we tried.
+            _loaded = true; //if we failed, do not keep trying.
         }
 
         private bool IsValidGpxFile
@@ -126,13 +145,15 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
                 if (_sr == null)
                 {
                     //All GPX file are in WGS84
-                    ISpatialReferenceFactory2 factory = new SpatialReferenceEnvironmentClass();
-                    _sr = factory.CreateGeographicCoordinateSystem((int)esriSRGeoCSType.esriSRGeoCS_WGS1984);
+                    ISpatialReferenceFactory3 factory = new SpatialReferenceEnvironmentClass();
+                    _sr = (ISpatialReference3)factory.CreateGeographicCoordinateSystem((int)esriSRGeoCSType.esriSRGeoCS_WGS1984);
+                    _sr.VerticalCoordinateSystem =
+                        factory.CreateVerticalCoordinateSystem((int) esriSRVerticalCSType.esriSRVertCS_WGS1984);
                 }
                 return _sr;
             }
         }
-        private ISpatialReference _sr;
+        private ISpatialReference3 _sr;
 
         //This is an array of data for each feature class in the feature dataset
         internal GpxFeatureClass[] FeatureClasses
@@ -177,10 +198,10 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
 
         private IEnvelope BoundsFromMetadata(XElement boundsElement)
         {
-            var xmin = (double?)boundsElement.Attribute("minlon");
-            var xmax = (double?)boundsElement.Attribute("maxlon");
-            var ymin = (double?)boundsElement.Attribute("minlat");
-            var ymax = (double?)boundsElement.Attribute("maxlat");
+            double? xmin = GetSafeDoubleAttribute(boundsElement, "minlon");
+            double? xmax = GetSafeDoubleAttribute(boundsElement, "maxlon");
+            double? ymin = GetSafeDoubleAttribute(boundsElement, "minlat");
+            double? ymax = GetSafeDoubleAttribute(boundsElement, "maxlat");
 
             if (!xmin.HasValue || !xmax.HasValue || !ymin.HasValue || !ymax.HasValue)
                 return null;
@@ -201,7 +222,7 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
 
             var ptNodes = Root.Descendants().Where(e => e.Name == _xmlNamespace + "wpt" || e.Name == _xmlNamespace + "trkpt" || e.Name == _xmlNamespace + "rtept");
             var coords = from e in ptNodes
-                         select new { X = (double?)e.Attribute("lon"), Y = (double?)e.Attribute("lat") };
+                         select new { X = GetSafeDoubleAttribute(e, "lon"), Y = GetSafeDoubleAttribute(e, "lat") };
 
             foreach (var coord in coords.Where(coord => coord.X.HasValue && coord.Y.HasValue))
             {
@@ -216,6 +237,18 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
             IEnvelope bounds = new EnvelopeClass { SpatialReference = SpatialReference };
             bounds.PutCoords(xmin, ymin, xmax, ymax);
             return bounds;
+        }
+
+        private static double? GetSafeDoubleAttribute(XElement element, string name)
+        {
+            try
+            {
+                return (double?)element.Attribute(name);
+            }
+            catch (FormatException)
+            {
+                return null;
+            }
         }
 
 
@@ -307,6 +340,20 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
             field.Type_2 = esriFieldType.esriFieldTypeString;
             fields.AddField(field);
 
+            //GPX 1.0
+            field = new FieldClass();
+            field.Name_2 = "url";
+            field.AliasName_2 = "Url link";
+            field.Type_2 = esriFieldType.esriFieldTypeString;
+            fields.AddField(field);
+
+            //GPX 1.0
+            field = new FieldClass();
+            field.Name_2 = "urlname";
+            field.AliasName_2 = "Url Name";
+            field.Type_2 = esriFieldType.esriFieldTypeString;
+            fields.AddField(field);
+
             field = new FieldClass();
             field.Name_2 = "type";
             field.AliasName_2 = "Type";
@@ -324,7 +371,7 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
             {
                 field = new FieldClass();
                 field.Name_2 = "number";
-                field.AliasName_2 = "Vertex Count";
+                field.AliasName_2 = featureClass.Path == "rte" ? "Route Number" : "Track Number";
                 field.Type_2 = esriFieldType.esriFieldTypeInteger;
                 fields.AddField(field);
             }
@@ -340,7 +387,7 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
 
                 field = new FieldClass();
                 field.Name_2 = "time";
-                field.AliasName_2 = "Time";
+                field.AliasName_2 = "Time (UTC)";
                 field.Type_2 = esriFieldType.esriFieldTypeDate;
                 fields.AddField(field);
 
@@ -404,5 +451,43 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
 
             return fields;
         }
+
+        //private Dictionary<string,int> ElementList(GpxFeatureClass featureClass)
+        //{
+        //    var result = new Dictionary<string, int>();
+        //    var elements = Root.Descendants().Where(e => e.Name == _xmlNamespace + featureClass.Path);
+        //    foreach (var element in elements)
+        //    {
+        //        bool newElement = true;
+        //        foreach (var subelement in element.Elements())
+        //        {
+        //            PutElementInDict(result, subelement, newElement);
+        //            newElement = false;
+        //        }
+        //    }
+        //    return result;
+        //}
+
+        //private void PutElementInDict(Dictionary<string, int> dict, XElement subelement, bool newElement)
+        //{
+        //    int linkCount = 0;
+        //    string name = subelement.Name.LocalName;
+        //    if (name == "link")
+        //    {
+        //        if (newElement)
+        //            linkCount = 1;
+        //        else
+        //            linkCount++;
+        //    }
+        //    else if (name == "extensions")
+        //    {
+                
+        //    }
+        //    else
+        //    {
+        //        dict[name] = 1;
+        //    }
+
+        //}
     }
 }

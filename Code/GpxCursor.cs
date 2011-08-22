@@ -191,13 +191,25 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
                 switch (field.Type)
                 {
                     case esriFieldType.esriFieldTypeInteger:
-                        row.Value[i] = (int?)_enumerator.Current.GetElement(field.Name);
+                        int? num = GetSafeIntElement(_enumerator.Current, field.Name);
+                        if (num.HasValue)
+                            row.Value[i] = num.Value;
+                        else
+                            row.Value[i] = DBNull.Value;
                         break;
                     case esriFieldType.esriFieldTypeDouble:
-                        row.Value[i] = (double?)_enumerator.Current.GetElement(field.Name);
+                        double? dbl = GetSafeDoubleElement(_enumerator.Current, field.Name);
+                        if (dbl.HasValue)
+                            row.Value[i] = dbl.Value;
+                        else
+                            row.Value[i] = DBNull.Value;
                         break;
                     case esriFieldType.esriFieldTypeDate:
-                        row.Value[i] = (DateTime?)_enumerator.Current.GetElement(field.Name);
+                        DateTime? date = GetSafeDateTimeElement(_enumerator.Current, field.Name);
+                        if (date.HasValue)
+                            row.Value[i] = date.Value;
+                        else
+                            row.Value[i] = DBNull.Value;
                         break;
                     case esriFieldType.esriFieldTypeString:
                         //FIXME - if field.Name = "link", then there may be multiple Elements, but we are only getting the first
@@ -261,15 +273,15 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
 
         private void BuildPoint(IPoint point, XElement ele)
         {
-            var x = (double?)ele.Attribute("lon");
-            var y = (double?)ele.Attribute("lat");
+            double? x = GetSafeDoubleAttribute(ele, "lon");
+            double? y = GetSafeDoubleAttribute(ele, "lat");
             if (x.HasValue && y.HasValue)
                 point.PutCoords(x.Value, y.Value);
             else
                 point.SetEmpty();
 
             //elevation
-            var elev = (double?)ele.GetElement("ele");
+            double? elev = GetSafeDoubleElement(ele,"ele");
             if (elev.HasValue)
             {
                 point.Z = elev.Value;
@@ -278,5 +290,56 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
         }
 
         #endregion
+
+
+        private static double? GetSafeDoubleAttribute(XElement element, string name)
+        {
+            try
+            {
+                return (double?)element.Attribute(name);
+            }
+            catch (FormatException)
+            {
+                return null;
+            }
+        }
+
+        private static double? GetSafeDoubleElement(XElement element, string name)
+        {
+            try
+            {
+                return (double?)element.GetElement(name);
+            }
+            catch (FormatException)
+            {
+                return null;
+            }
+        }
+
+        private static int? GetSafeIntElement(XElement element, string name)
+        {
+            try
+            {
+                return (int?)element.GetElement(name);
+            }
+            catch (FormatException)
+            {
+                return null;
+            }
+        }
+
+        private static DateTime? GetSafeDateTimeElement(XElement element, string name)
+        {
+            try
+            {
+                return (DateTime?)element.GetElement(name);
+            }
+            catch (FormatException)
+            {
+                return null;
+            }
+        }
+
+
 	}
 }
