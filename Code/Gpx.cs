@@ -1,34 +1,6 @@
-﻿//TODO - Do I need to determine correct length for string fields?  Not specifying the length seems to work
-//TODO - Casting Xelement to Nullable<T> can throw FormatException if value is not in the right format.
-//       Trap and convert to null.  If I let the exception bubble up, it will render a file unreadable due to minor formatting problems. 
-//TODO - Add logic to correctly set "HasZ".  Currently assuming all geometry has Z values (is this a problem?).
-//TODO - Remove unused attributes from field list.  Currently creating a field list with entire schema
-//TODO - ArcCatalog is not displaying information like file size/date
-//TODO - All tracks and route vertices render at one elevation, despite Z values on vertices (I expect polygons to have a single Z value, but not polylines)
-//TODO - Can we create ArcGIS metadata from the metadata element in the Gpx file?
-//TODO - Create an attribute for each sub element of extensions (always of string type despite potential for conversion)
-//TODO - for tags with multiplicity > 1 (like link, and possibly sub-elements of extension) need to create multiple attributes i.e. link1, link2, ....
-//TODO - What to do with link sub-elements?
-//       I am currently ignoring them because Desktop can deal with a href, but not html. Can I do better?
-//TODO - Explore object creation and lifetime.  The API is not clear on when these helper classes are called by Desktop.
-//       For example, IPlugInWorkspaceFactoryHelper::OpenWorkspace() is called multiple times by ArcCatalog
-//                    This results in a differnt workspace objects for creating the list of datasets, and opening the datasets
-//       For example, When creating a table view, IPlugInDatasetHelper::FetchAll is called once to get a list of all OID,
-//                    then IPlugInDatasetHelper::FetchByID is called for each OID.  This results in N+1 scans of the gpx file.
-//TODO - Create a cache indexed by OID (file is scanned (number of records)+1 times to fill data table) 
+﻿//TODO - Create a cache indexed by OID (file is scanned (number of records)+1 times to fill data table) 
 //       If we cache a file, can we efficiently create a lightweight envelope for each element to optimize IPlugInDatasetHelper::FetchByEnvelope
 //       How will a cache mess with the dynamic nature of datasources (i.e. file should be recanned on screen redraws)
-//
-//NOTE: extensions element of the trackseg is ignored
-//
-// Typical calling cycle for shape/data display
-//   IPlugInDatasetHelper::FetchXXX -> IPlugInCursorHelper
-//   IPlugInCursorHelper::IsFinished
-//   IPlugInCursorHelper::QueryXXX
-//   while not error:
-//     IPlugInCursorHelper::NextRecord
-//     IPlugInCursorHelper::QueryXXX
-//   IPlugInCursorHelper::IsFinished
 
 
 using System;

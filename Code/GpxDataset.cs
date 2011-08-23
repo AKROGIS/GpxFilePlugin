@@ -170,7 +170,7 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
             }
             catch (System.IO.FileNotFoundException) { }
             // _gpx now references a non-existant file.
-            // OK, because this dataset is never used again.
+            // OK, because this dataset is never used again.  //TODO - verify
             return name;
         }
 

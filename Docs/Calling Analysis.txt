@@ -1,0 +1,165 @@
+Explore object creation and lifetime.
+The API is not clear on when the Plugin helper classes are called by Desktop.
+In particular, it is not clear when objects are created (and re-created)
+
+Key observations:
+
+* IPlugInWorkspaceFactoryHelper::OpenWorkspace() is called multiple times by ArcCatalog
+    This results in one workspace object for creating the list of datasets, and
+	another for opening a dataset.
+	
+* When creating a table view, IPlugInDatasetHelper::FetchAll is called once to get a
+    list of all OIDs, then IPlugInDatasetHelper::FetchByID is called for each OID.
+	This results in N+1 scans of the gpx file.
+
+	
+Typical cursor calling cycle for shape or data display
+	IPlugInDatasetHelper::FetchXXX()
+	* Construct Cursor
+	IPlugInCursorHelper::IsFinished()
+	loop n times (n = number of features)
+		IPlugInCursorHelper::QueryValues()
+		IPlugInCursorHelper::QueryShape()  //skip for table view
+		IPlugInCursorHelper::NextRecord()
+	IPlugInCursorHelper::IsFinished()
+
+
+Launch Catalog
+	IPlugInWorkspaceFactoryHelper::WorkspaceFactoryTypeID
+	IPlugInWorkspaceFactoryHelper::DataSourceName
+	IPlugInWorkspaceFactoryHelper::get_WorkspaceDescription(false)
+	IPlugInWorkspaceFactoryHelper::get_WorkspaceDescription(true)
+	IPlugInWorkspaceFactoryHelper::GetWorkspaceString({last folderConnection}, fileNames)
+	IPlugInWorkspaceFactoryHelper::GetWorkspaceString("C:\\", fileNames)
+		...	checks all folders from root to location
+	IPlugInWorkspaceFactoryHelper::GetWorkspaceString({last location} , fileNames)
+	
+Click on a folder already visited (with or without my datasources) 
+	nothing
+	
+Click on (or refresh) a folder (without my datasources)
+	IPlugInWorkspaceFactoryHelper::GetWorkspaceString(folderPath, fileNames)
+
+Click on (or refresh) a folder containing one or more of my datasources
+	IPlugInWorkspaceFactoryHelper::GetWorkspaceString(folderPath, fileNames)
+	IPlugInWorkspaceFactoryHelper::WorkspaceType
+	IPlugInWorkspaceFactoryHelper::GetWorkspaceString(folderPath, {empty fileNames})
+	IPlugInWorkspaceFactoryHelper::OpenWorkspace(folderPath)
+	* Construct Workspace
+	IPlugInWorkspaceFactoryHelper::get_WorkspaceDescription(false)
+	IPlugInWorkspaceFactoryHelper::CanSupportSQL
+	IPlugInWorkspaceHelper::get_DatasetNames(esriDTAny)
+	* Construct one or more Datasets
+	repeat for each datasource
+		IPlugInDatasetInfo::LocalDatasetName
+	IPlugInWorkspaceFactoryHelper::WorkspaceType
+	repeat for each data source
+		IPlugInDatasetInfo::DatasetType
+		IPlugInDatasetInfo::LocalDatasetName
+		IPlugInWorkspaceFactoryHelper::get_DatasetDescription({datasource data type})
+	repeat for each datasource
+		IPlugInDatasetInfo::DatasetType
+
+Click on one of my datasources
+	IPlugInWorkspaceFactoryHelper::OpenWorkspace(parentPath)
+	* Construct Workspace
+	IPlugInWorkspaceFactoryHelper::get_WorkspaceDescription(false)
+	IPlugInWorkspaceFactoryHelper::CanSupportSQL
+	IPlugInWorkspaceHelper::OpenDataset(datasourceName)
+	* Construct Dataset
+	IPlugInWorkspaceFactoryHelper::WorkspaceType
+	IPlugInWorkspaceFactoryHelper::get_DatasetDescription(esriDTFeatureClass)
+	IPlugInDatasetHelper::ClassCount -> n = 0...
+	IPlugInDatasetInfo::DatasetType
+	loop i in [0..n-1] skip if n = 0	
+		IPlugInDatasetHelper::get_ShapeFieldIndex(i)
+		IPlugInDatasetHelper::get_ClassName(i)
+		IPlugInDatasetHelper::ClassCount
+		IPlugInDatasetHelper::get_ShapeFieldIndex(i)
+		IPlugInDatasetHelper::get_Fields(i)
+	** ArcCatalog Updates the display **
+	repeat 4 times (skip last line on last loop)
+		IPlugInWorkspaceFactoryHelper::OpenWorkspace(parentPath)
+		* Construct Workspace
+		IPlugInWorkspaceFactoryHelper::get_WorkspaceDescription(false)
+		IPlugInWorkspaceFactoryHelper::CanSupportSQL
+		IPlugInMetadataPath::get_MetadataPath(datasourceName)
+
+Click on one of my datasources (already visited)
+	repeat 4 times (skip last line on last loop)
+		IPlugInWorkspaceFactoryHelper::OpenWorkspace(parentPath)
+		* Construct Workspace
+		IPlugInWorkspaceFactoryHelper::get_WorkspaceDescription(false)
+		IPlugInWorkspaceFactoryHelper::CanSupportSQL
+		IPlugInMetadataPath::get_MetadataPath(datasourceName)
+
+
+Click on a feature class in my dataset (contents pane active)
+	repeat 5 times (skip last two line on last loop) - ArcCatalog draws display after first loop
+		IPlugInWorkspaceFactoryHelper::OpenWorkspace(parentPath)
+		* Construct Workspace
+		IPlugInWorkspaceFactoryHelper::get_WorkspaceDescription(false)
+		IPlugInWorkspaceFactoryHelper::CanSupportSQL
+		IPlugInWorkspaceFactoryHelper::WorkspaceType
+		IPlugInMetadataPath::get_MetadataPath(dataset:featureclass)
+
+Click on a feature class in my dataset (geography preview pane active)
+		IPlugInWorkspaceFactoryHelper::OpenWorkspace(parentPath)
+		* Construct Workspace
+		IPlugInWorkspaceFactoryHelper::get_WorkspaceDescription(false)
+		IPlugInWorkspaceFactoryHelper::CanSupportSQL
+		IPlugInWorkspaceHelper::OpenDataset(dsName)
+		* Construct Dataset
+		IPlugInWorkspaceFactoryHelper::get_DatasetDescription(esriDTFeatureDataset)
+	start here if already displayed other FC in this dataset
+		IPlugInMetadataPath::get_MetadataPath(dsName)
+		IPlugInMetadataPath::get_MetadataPath(dsName:fcName)
+		IPlugInDatasetHelper::get_ClassIndex(fcName) -> i
+		IPlugInDatasetHelper::get_Fields(i)
+		IPlugInDatasetHelper::get_ShapeFieldIndex(i)
+		IPlugInWorkspaceFactoryHelper::get_DatasetDescription(esriDTFeatureClass)
+	start here if already displayed this FC at least once
+		IPlugInDatasetHelper::get_ClassIndex(fcName) -> i
+		IPlugInWorkspaceFactoryHelper::WorkspaceType      called 4 times
+		IPlugInDatasetHelper::Bounds                      called 8 times
+		IPlugInWorkspaceFactoryHelper::CanSupportSQL
+		IPlugInDatasetHelper::get_OIDFieldIndex(i)
+		IPlugInDatasetHelper::Bounds
+		IPlugInDatasetHelper::FetchAll()
+		* Construct Cursor
+		IPlugInCursorHelper::IsFinished()
+		loop n times (n = number of features)
+			IPlugInCursorHelper::QueryValues()
+			IPlugInCursorHelper::QueryShape()
+			IPlugInCursorHelper::NextRecord()
+		IPlugInCursorHelper::IsFinished()
+		** ArcCatalog updates display **
+		loop 4 times
+			IPlugInWorkspaceFactoryHelper::WorkspaceType
+			IPlugInMetadataPath::get_MetadataPath(dsName:fcName)
+
+switch from geography preview to table
+	IPlugInWorkspaceHelper::RowCountIsCalculated
+	IPlugInWorkspaceFactoryHelper::CanSupportSQL
+	IPlugInDatasetHelper::FetchAll()
+	* Construct Cursor
+	IPlugInCursorHelper::IsFinished()
+	IPlugInWorkspaceFactoryHelper::WorkspaceType
+	** loop over cursor
+	IPlugInCursorHelper::IsFinished()
+	IPlugInWorkspaceFactoryHelper::CanSupportSQL
+	for each id
+		IPlugInDatasetHelper::FetchByID()
+		* Construct Cursor
+		....
+		
+	
+Click on a feature class in my dataset already visited
+	same as above, except skip first loop
+
+Click on a datasource I do not own
+	nothing
+	
+Click on a feature class I do not own
+	nothing
+
