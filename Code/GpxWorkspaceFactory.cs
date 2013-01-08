@@ -118,7 +118,7 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
 
                 var ext = System.IO.Path.GetExtension(fileName);
                 if (ext != null && ext.Equals(Extension) ||
-                    fileName.EndsWith(MetadataExtension,StringComparison.InvariantCultureIgnoreCase))
+                    fileName.EndsWith(MetadataExtension, StringComparison.InvariantCultureIgnoreCase))
                 {
                     fileFound = true;
                     fileNames.Remove();

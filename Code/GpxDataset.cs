@@ -150,7 +150,7 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
             {
                 System.IO.File.Copy(_gpx.Path + XmlExtension, newPath + XmlExtension);
             }
-            catch (System.IO.FileNotFoundException) {}
+            catch (System.IO.FileNotFoundException) { }
         }
 
         public void Delete()

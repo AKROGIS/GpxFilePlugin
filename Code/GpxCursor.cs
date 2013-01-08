@@ -7,15 +7,15 @@ using ESRI.ArcGIS.Geometry;
 
 namespace NPS.AKRO.ArcGIS.GpxPlugin
 {
-	/// <summary>
+    /// <summary>
     /// Provides data via the interface expected by the plug in framework.
     /// The IPlugInCursorHelper interface must be implemented by a helper class of a plug-in data source.
     /// When the cursor is created it must be positioned at the first record, so that
     /// QueryValues and QueryShape can get the data for the first record in the results.
     /// NextRecord advances the current record, so that QueryValues and QueryShape then get data for the next record.
-	/// </summary>
-	internal class GpxCursor : IPlugInCursorHelper
-	{
+    /// </summary>
+    internal class GpxCursor : IPlugInCursorHelper
+    {
         private int _currentId;
         private bool _isFinished;
 
@@ -53,7 +53,7 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
             NextRecord();
         }
 
-		#region IPlugInCursorHelper Members
+        #region IPlugInCursorHelper Members
 
         /// <summary>
         /// Returns true if there are no more records to get from the cursor.
@@ -79,8 +79,8 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
         /// <exception>
         /// COMException - Thrown when the end of the cursor is reached, thrown only once.
         /// </exception>
-		public void NextRecord()
-		{
+        public void NextRecord()
+        {
             if (_isFinished)
                 return;
 
@@ -115,22 +115,22 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
             }
         }
 
-	    private void AdvanceCursor()
-	    {
+        private void AdvanceCursor()
+        {
             _currentId++;
             if (_enumerator.MoveNext() == false)
                 CloseCursor();
         }
 
-	    private void CloseCursor()
-	    {
+        private void CloseCursor()
+        {
             _isFinished = true;
             _currentId = -1;
             // COMException with HRESULT = E_FAIL
             throw new COMException("End of Gpx Plugin cursor", unchecked((int)0x80004005));
         }
 
-	    /// <summary>
+        /// <summary>
         /// QueryShape uses the data in the current record to modify the provided geometry.
         /// If anything goes wrong, the geometry should be set empty. 
         /// This method should not allocate memory.
@@ -282,7 +282,7 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
                 point.SetEmpty();
 
             //elevation
-            double? elev = GetSafeDoubleElement(ele,"ele");
+            double? elev = GetSafeDoubleElement(ele, "ele");
             if (elev.HasValue)
             {
                 point.Z = elev.Value;
@@ -342,5 +342,5 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
         }
 
 
-	}
+    }
 }

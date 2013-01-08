@@ -63,7 +63,7 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
                 //System.Diagnostics.Trace.TraceInformation("Loaded file " + _path);
 
 #else //define the namespace 'gpxx:' in order to read old DNR Garmin files which use this undeclared namespace
-                
+
                 //TODO - loop on XmlExceptions, adding any other undeclared namespaces
                 var nt = new NameTable();
                 var nsmgr = new XmlNamespaceManager(nt);
@@ -75,7 +75,7 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
                     _xmlRoot = XElement.Load(tr);
                     System.Diagnostics.Trace.TraceInformation("Loaded file " + _path);
                 }
-#endif 
+#endif
 
                 _xmlNamespace = _xmlRoot.GetDefaultNamespace();
                 if (!IsValidGpxFile)
@@ -120,7 +120,7 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
                     ISpatialReferenceFactory3 factory = new SpatialReferenceEnvironmentClass();
                     _sr = (ISpatialReference3)factory.CreateGeographicCoordinateSystem((int)esriSRGeoCSType.esriSRGeoCS_WGS1984);
                     _sr.VerticalCoordinateSystem =
-                        factory.CreateVerticalCoordinateSystem((int) esriSRVerticalCSType.esriSRVertCS_WGS1984);
+                        factory.CreateVerticalCoordinateSystem((int)esriSRVerticalCSType.esriSRVertCS_WGS1984);
                 }
                 return _sr;
             }
@@ -284,7 +284,7 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
             field.Type_2 = esriFieldType.esriFieldTypeString;
             fields.AddField(field);
 
-// ReSharper disable UseObjectOrCollectionInitializer
+            // ReSharper disable UseObjectOrCollectionInitializer
             //These COM classes do not support object initializers
             field = new FieldClass();
             field.Name_2 = "cmt";
@@ -454,7 +454,7 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
         //    }
         //    else if (name == "extensions")
         //    {
-                
+
         //    }
         //    else
         //    {
