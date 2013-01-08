@@ -149,8 +149,9 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
                 return;
             }
 
-            if (geometry is IPoint)
-                BuildPoint((IPoint)geometry, _enumerator.Current);
+            var point = geometry as IPoint;
+            if (point != null)
+                BuildPoint(point, _enumerator.Current);
             else
             {
                 // since each polyline/polygon can be a different size, it is not easy to reuse the geometry

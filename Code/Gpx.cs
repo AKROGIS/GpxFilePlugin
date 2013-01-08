@@ -228,9 +228,8 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
         {
             if (classIndex < 0 || FeatureClasses.Length <= classIndex)
                 return null;
-            if (FeatureClasses[classIndex].WorkingGeometry == null)
-                FeatureClasses[classIndex].WorkingGeometry = BuildWorkingGeometry(FeatureClasses[classIndex]);
-            return FeatureClasses[classIndex].WorkingGeometry;
+            return FeatureClasses[classIndex].WorkingGeometry ??
+                   (FeatureClasses[classIndex].WorkingGeometry = BuildWorkingGeometry(FeatureClasses[classIndex]));
         }
 
         private IGeometry BuildWorkingGeometry(GpxFeatureClass featureClass)
@@ -255,9 +254,8 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
         {
             if (classIndex < 0 || FeatureClasses.Length <= classIndex)
                 return null;
-            if (FeatureClasses[classIndex].Fields == null)
-                FeatureClasses[classIndex].Fields = BuildFields(FeatureClasses[classIndex]);
-            return FeatureClasses[classIndex].Fields;
+            return FeatureClasses[classIndex].Fields ??
+                   (FeatureClasses[classIndex].Fields = BuildFields(FeatureClasses[classIndex]));
         }
 
 
@@ -286,6 +284,8 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
             field.Type_2 = esriFieldType.esriFieldTypeString;
             fields.AddField(field);
 
+// ReSharper disable UseObjectOrCollectionInitializer
+            //These COM classes do not support object initializers
             field = new FieldClass();
             field.Name_2 = "cmt";
             field.AliasName_2 = "Comment";
@@ -419,6 +419,7 @@ namespace NPS.AKRO.ArcGIS.GpxPlugin
                 field.Name_2 = "dgpsid";
                 field.Type_2 = esriFieldType.esriFieldTypeInteger;
                 fields.AddField(field);
+                // ReSharper restore UseObjectOrCollectionInitializer
             }
 
             return fields;
