@@ -1,4 +1,6 @@
-How to use:
+The plugin was developed with C#, and .Net 3.5.
+It requires the ArcObjects libraries from ESRI
+Visual Studio 2010 project files are provided for building the source code.
 
 production/testing:
   copy bin/release/GpxPlugin.dll from bin/release to some stable system folder
@@ -10,7 +12,7 @@ production/testing:
 development/debugging:
   copy reg.bat/unreg.bat to bin/debug
   run reg.bat as administrator
-  VS project file should launch ArcCatalog after building the debug dll
+  visual studio should launch ArcCatalog after building the debug dll
   you do not need to re-register between builds unless you change the GUID
   
 
