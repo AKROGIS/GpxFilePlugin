@@ -6,6 +6,7 @@ The GPX file does not need to be converted to a more
 common data format before viewing.
 
 ## Build
+
 The plugin was developed with C#, and .Net 3.5.
 It requires the ArcObjects libraries from ESRI.
 Visual Studio 2010 project files are provided for building the source code.
@@ -14,7 +15,7 @@ Visual Studio 2010 project files are provided for building the source code.
 
 After building a debug version with Visual Studio
 
-1) Copy `reg.bat` and `unreg.bat` to the `code/bin/debug` folder.
+1) Copy `reg.bat` and `unreg.bat` to the `10xCode/bin/debug` folder.
 2) Run `reg.bat` as administrator
 3) Start a debug build and visual studio should launch ArcCatalog
    after building the debug dll
@@ -26,7 +27,7 @@ After building a debug version with Visual Studio
 
 The plugin requires installation by an administrator.
 
-1) Copy `GpxPlugin.dll` from `Code/bin/release` to
+1) Copy `GpxPlugin.dll` from `10xCode/bin/release` to
    some stable system folder.
 2) Copy `reg.bat` and `unreg.bat` to the same folder.
 3) Run `reg.bat` as administrator.
@@ -40,7 +41,7 @@ See the MS Word file in the `Docs` folder for more information.
 ## Publish
 
 New versions (or recompiles for new versions or ArcObjects)
-should be published to 
+should be published to
 [IRMA](https://irma.nps.gov/DataStore/Reference/Profile/2203303)
 and the PDS (Alaska Region's GIS network drive).
 
