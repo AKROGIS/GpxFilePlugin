@@ -1,51 +1,57 @@
 ﻿using ArcGIS.Core.Data;
 using ArcGIS.Core.Data.PluginDatastore;
-using ArcGIS.Core.Geometry;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GpxPluginPro
 {
     public class GpxPluginDatasourceTemplate : PluginDatasourceTemplate
     {
 
-        public override void Open(Uri connectionPath)
+        private Dictionary<string, GpxFeatureClass> _tables = null;
+
+        public override string GetDatasourceDescription(bool inPluralForm)
         {
-            //TODO Initialize your plugin instance. Individual instances
-            //of your plugin may be initialized on different threads
-            throw new NotImplementedException();
+            return inPluralForm ? "GPX (GPS Exchange) Files" : "GPX (GPS Exchange) File";
         }
 
-        public override void Close()
+        public override string GetDatasetDescription(DatasetType datasetType)
         {
-            //TODO Cleanup required to close the plugin 
-            //data source instance
-            throw new NotImplementedException();
-        }
-
-        public override PluginTableTemplate OpenTable(string name)
-        {
-            //TODO Open the given table/object in the plugin
-            //data source
-            throw new NotImplementedException();
-        }
-
-        public override IReadOnlyList<string> GetTableNames()
-        {
-            var tableNames = new List<string>();
-
-            //TODO Return the names of all tables in the plugin
-            //data source
-            return tableNames;
+            return datasetType == DatasetType.FeatureClass ? "GPX Feature Class" : null;
         }
 
         public override bool IsQueryLanguageSupported()
         {
-            //default is false
-            return base.IsQueryLanguageSupported();
+            return false;
         }
+
+        public override bool CanOpen(Uri connectionPath)
+        {
+            return GpxFile.HasCorrectExtension(connectionPath);
+        }
+
+        public override void Open(Uri connectionPath)
+        {
+            _tables = (new GpxFile(connectionPath)).GetFeatureClasses();
+        }
+
+        public override void Close()
+        {
+            _tables = null;
+        }
+
+        public override IReadOnlyList<string> GetTableNames()
+        {
+            return _tables.Keys.ToArray();
+        }
+
+        public override PluginTableTemplate OpenTable(string name)
+        {
+            
+            return new GpxPluginTableTemplate(_tables[name]);
+        }
+
     }
 }
