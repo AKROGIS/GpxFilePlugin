@@ -79,20 +79,29 @@ namespace GpxPluginPro
 
         private GpxFeatureClass Fix(GpxFeatureClass featureClass)
         {
-            //TODO: Define Fields, Rows, and Extent
+            //TODO: Define Fields, Rows
             featureClass.Extent = GetBounds();
             return featureClass;
         }
+
+        #region Extents
 
         private Envelope GetBounds()
         {
             //A GPX 1.0 has a single optional bounds tag
             //A GPX 1.1 file has a single optional metadata/bounds tag
-            XElement boundsElement = _xmlRoot.Descendants(_xmlNamespace + "bounds").FirstOrDefault();
-            return (boundsElement != null)
-                ? BoundsFromMetadata(boundsElement)
-                : BoundsFromFileScan();
+            if (_bounds == null) {
+                XElement boundsElement = _xmlRoot.Descendants(_xmlNamespace + "bounds").FirstOrDefault();
+                _bounds = (boundsElement != null)
+                    ? BoundsFromMetadata(boundsElement)
+                    : BoundsFromFileScan();
+            }
+            return _bounds;
         }
+        // Cache the results, because it will be the same for all feature classes (one per file)
+        // TODO: Consider ignoringing the metadata and always doing a file scan.
+        // TODO: Limit the file scan to just the elments for a specific feature class.
+        private Envelope _bounds;
 
         private Envelope BoundsFromMetadata(XElement boundsElement)
         {
@@ -111,24 +120,34 @@ namespace GpxPluginPro
 
         private Envelope BoundsFromFileScan()
         {
-            double xmin = double.MaxValue,
-                   ymin = double.MaxValue,
-                   xmax = double.MinValue,
-                   ymax = double.MinValue;
+            double xmin = 180.0,
+                   ymin = 90.0,
+                   xmax = -180.0,
+                   ymax = -90.0;
 
             var ptNodes = _xmlRoot.Descendants().Where(e => e.Name == _xmlNamespace + "wpt" || e.Name == _xmlNamespace + "trkpt" || e.Name == _xmlNamespace + "rtept");
             var coords = from e in ptNodes
                          select new { X = GetSafeDoubleAttribute(e, "lon"), Y = GetSafeDoubleAttribute(e, "lat") };
 
-            foreach (var coord in coords.Where(coord => coord.X.HasValue && coord.Y.HasValue))
+            foreach (var coord in coords.Where(
+                //Ignore pair if either is invalid; i.e. dont process a valid X if the Y is invalid. 
+                coord => (coord.X.HasValue && coord.X.Value >= -180.0 && coord.X.Value <= 180.0) &&
+                          coord.Y.HasValue && coord.Y.Value >= -90.0 && coord.Y.Value <= 90.0))
             {
-                if (coord.X < xmin) xmin = coord.X.Value;
-                if (coord.X > xmax) xmax = coord.X.Value;
-                if (coord.Y < ymin) ymin = coord.Y.Value;
-                if (coord.Y > ymax) ymax = coord.Y.Value;
+                if (coord.X.Value < xmin) xmin = coord.X.Value;
+                if (coord.X.Value > xmax) xmax = coord.X.Value;
+                if (coord.Y.Value < ymin) ymin = coord.Y.Value;
+                if (coord.Y.Value > ymax) ymax = coord.Y.Value;
             }
-            if (xmin < -180 || ymin < -90 || xmax > 180 || ymax > 90 || xmin > xmax || ymin > ymax)
-                return null;
+            // In case we did not see any valid values
+            if (xmax < xmin)
+            {
+                xmin = -180.0; xmax = 180.0;
+            }
+            if (ymax < ymin)
+            {
+                ymin = -90.0; ymax = 90.0;
+            }
             return EnvelopeBuilder.CreateEnvelope(xmin, ymin, xmax, ymax, SpatialReferences.WGS84);
         }
 
@@ -144,5 +163,6 @@ namespace GpxPluginPro
             }
         }
 
+        #endregion
     }
 }
