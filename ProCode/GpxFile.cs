@@ -1,6 +1,9 @@
-﻿using ArcGIS.Core.Geometry;
+﻿using ArcGIS.Core.Data;
+using ArcGIS.Core.Data.PluginDatastore;
+using ArcGIS.Core.Geometry;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -79,8 +82,9 @@ namespace GpxPluginPro
 
         private GpxFeatureClass Fix(GpxFeatureClass featureClass)
         {
-            //TODO: Define Fields, Rows
+            //TODO: Define Rows
             featureClass.Extent = GetBounds();
+            featureClass.Fields = BuildFields(featureClass);
             return featureClass;
         }
 
@@ -161,6 +165,187 @@ namespace GpxPluginPro
             {
                 return null;
             }
+        }
+
+        #endregion
+
+        #region Fields
+
+        //This is the full GPX 1.1 schema.
+        //Option 1 - Add all schema defined fields, even if they are not used
+        //TODO - Option 2 - Scan file and only use fields used in this file.
+        //var search = Root.Descendants(_ns + type.Path);
+
+        private Collection<PluginField> BuildFields(GpxFeatureClass featureClass)
+        {
+            var fields = new Collection<PluginField>();
+
+            //ObjectID
+            fields.Add(new PluginField
+            {
+                Name = "ObjectID",
+                AliasName = "Object ID",
+                FieldType = FieldType.OID
+            });
+            //Geometry
+            fields.Add(new PluginField
+            {
+                Name = "SHAPE",
+                AliasName = "Shape",
+                FieldType = FieldType.Geometry
+            });
+            //Common Fields
+            fields.Add(new PluginField
+            {
+                Name = "name",
+                AliasName = "Name",
+                FieldType = FieldType.String
+            });
+            fields.Add(new PluginField
+            {
+                Name = "cmt",
+                AliasName = "Comment",
+                FieldType = FieldType.String
+            });
+            fields.Add(new PluginField
+            {
+                Name = "desc",
+                AliasName = "Description",
+                FieldType = FieldType.String
+            });
+            fields.Add(new PluginField
+            {
+                Name = "src",
+                AliasName = "Source",
+                FieldType = FieldType.String
+            });
+            fields.Add(new PluginField
+            {
+                Name = "link",
+                AliasName = "Hyperlink",
+                //field.FieldType = FieldType.XML;
+                //XML datatype is not fully supported in Desktop (i.e. no value is displayed, and export to shapefile will fail)
+                //TODO: Test XML data type in Pro
+                FieldType = FieldType.String
+            });
+            //GPX 1.0
+            fields.Add(new PluginField
+            {
+                Name = "url",
+                AliasName = "Url link",
+                FieldType = FieldType.String
+            });
+            //GPX 1.0
+            fields.Add(new PluginField
+            {
+                Name = "urlname",
+                AliasName = "Url Name",
+                FieldType = FieldType.String
+            });
+            fields.Add(new PluginField
+            {
+                Name = "type",
+                AliasName = "Type",
+                FieldType = FieldType.String
+            });
+            fields.Add(new PluginField
+            {
+                Name = "extensions",
+                AliasName = "XML Extensions",
+                //field.FieldType = FieldType.XML;
+                //XML datatype is not fully supported in Desktop (i.e. no value is displayed, and export to shapefile will fail)
+                //TODO: Test XML data type in Pro
+                FieldType = FieldType.String
+            });
+
+            //Only for Routes and Tracks
+            if (featureClass.Path == "rte" || featureClass.Path == "trk")
+            {
+                fields.Add(new PluginField
+                {
+                    Name = "number",
+                    AliasName = featureClass.Path == "rte" ? "Route Number" : "Track Number",
+                    FieldType = FieldType.Integer
+                });
+            }
+
+            //Only for Points
+            if (featureClass.Path == "wpt" || featureClass.Path == "trkpt" || featureClass.Path == "rtept")
+            {
+                fields.Add(new PluginField
+                {
+                    Name = "ele",
+                    AliasName = "Elevation",
+                    FieldType = FieldType.Double
+                });
+                fields.Add(new PluginField
+                {
+                    Name = "time",
+                    AliasName = "Time (UTC)",
+                    FieldType = FieldType.Date
+                });
+                fields.Add(new PluginField
+                {
+                    Name = "magvar",
+                    AliasName = "Magnetic Variation",
+                    FieldType = FieldType.Double
+                });
+                fields.Add(new PluginField
+                {
+                    Name = "geoidheight",
+                    AliasName = "GeoID Height",
+                    FieldType = FieldType.Double
+                });
+                fields.Add(new PluginField
+                {
+                    Name = "sym",
+                    AliasName = "Symbol",
+                    FieldType = FieldType.String
+                });
+                fields.Add(new PluginField
+                {
+                    Name = "fix",
+                    AliasName = "GpsFix",
+                    FieldType = FieldType.String
+                });
+                fields.Add(new PluginField
+                {
+                    Name = "sat",
+                    AliasName = "Satellites",
+                    FieldType = FieldType.Integer
+                });
+                fields.Add(new PluginField
+                {
+                    Name = "hdop",
+                    AliasName = "HDOP",
+                    FieldType = FieldType.Double
+                });
+                fields.Add(new PluginField
+                {
+                    Name = "vdop",
+                    AliasName = "VDOP",
+                    FieldType = FieldType.Double
+                });
+                fields.Add(new PluginField
+                {
+                    Name = "pdop",
+                    AliasName = "PDOP",
+                    FieldType = FieldType.Double
+                });
+                fields.Add(new PluginField
+                {
+                    Name = "ageofdgpsdata",
+                    AliasName = "ageofdgps Data",
+                    FieldType = FieldType.Double
+                });
+                fields.Add(new PluginField
+                {
+                    Name = "dgpsid",
+                    AliasName = "DGPS ID",
+                    FieldType = FieldType.Integer
+                });
+            }
+            return fields;
         }
 
         #endregion
