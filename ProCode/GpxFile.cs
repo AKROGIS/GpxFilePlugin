@@ -28,7 +28,7 @@ namespace GpxPluginPro
 
         internal GpxFile(Uri path)
         {
-            if (path == null) { throw new ArgumentNullException("path"); }    
+            if (path == null) { throw new ArgumentNullException("path"); }
             _path = path;
         }
 
@@ -85,16 +85,22 @@ namespace GpxPluginPro
             //TODO: Define Rows
             featureClass.Extent = GetBounds();
             featureClass.Fields = BuildFields(featureClass);
+            // Fields must be set first in order to ensure Row's values match the field list.
+            featureClass.Rows = GetRows(featureClass);
             return featureClass;
         }
 
         #region Extents
 
+        //FIXME: HasZ, hasM is determined by the extent envelope.  Current implementation does not allow Z (GPX has no M or ID)
+        //Use Builder with two MapPoints with a Z value defined
+        //MapPoint pt = MapPointBuilder.CreateMapPoint(x,y,z,sr);
         private Envelope GetBounds()
         {
             //A GPX 1.0 has a single optional bounds tag
             //A GPX 1.1 file has a single optional metadata/bounds tag
-            if (_bounds == null) {
+            if (_bounds == null)
+            {
                 XElement boundsElement = _xmlRoot.Descendants(_xmlNamespace + "bounds").FirstOrDefault();
                 _bounds = (boundsElement != null)
                     ? BoundsFromMetadata(boundsElement)
@@ -172,9 +178,12 @@ namespace GpxPluginPro
         #region Fields
 
         //This is the full GPX 1.1 schema.
-        //Option 1 - Add all schema defined fields, even if they are not used
+        //Option 1 - Add all schema defined fields, even if they are not used (return null for unused fields)
         //TODO - Option 2 - Scan file and only use fields used in this file.
         //var search = Root.Descendants(_ns + type.Path);
+
+        //IMPORTANT: Other code in this plugin assume that the OID is field 0, and the Shape is field 1 (ArcGIS doesn't care about the ordering)
+        //IMPORTANT: the field.Name (Except OID and SHAPE) must be the exact same as the XML element name to look up the correct attribute value 
 
         private Collection<PluginField> BuildFields(GpxFeatureClass featureClass)
         {
@@ -349,5 +358,205 @@ namespace GpxPluginPro
         }
 
         #endregion
+
+        #region Rows
+
+        private Collection<Collection<object>> GetRows(GpxFeatureClass featureClass)
+        {
+            var rows = new Collection<Collection<object>>();
+            var records = _xmlRoot.Descendants().Where(e => e.Name == _xmlNamespace + featureClass.Path);
+            var oid = 1;
+            foreach (var record in records)
+            {
+                rows.Add(GetValues(oid, record, featureClass));
+                oid += 1;
+            }
+            return rows;
+        }
+
+        private Collection<object> GetValues(int oid, XElement row, GpxFeatureClass featureClass)
+        {
+            var values = new Collection<object>();
+            foreach (var field in featureClass.Fields)
+            {
+                switch (field.FieldType)
+                {
+                    case FieldType.OID:
+                        values.Add(oid);
+                        break;
+                    case FieldType.Geometry:
+                        values.Add(GetGeometry(row, featureClass));
+                        break;
+                    case FieldType.Integer:
+                        values.Add(GetSafeIntElement(row, field.Name));
+                        break;
+                    case FieldType.Double:
+                        values.Add(GetSafeDoubleElement(row, field.Name));
+                        break;
+                    case FieldType.String:
+                    case FieldType.XML:
+                        values.Add(GetStringElement(row, field.Name));
+                        break;
+                    case FieldType.Date:
+                        values.Add(GetSafeDateTimeElement(row, field.Name));
+                        break;
+                    case FieldType.Single:
+                    case FieldType.Blob:
+                    case FieldType.SmallInteger:
+                    case FieldType.Raster:
+                    case FieldType.GUID:
+                    case FieldType.GlobalID:
+                    default:
+                        throw new NotImplementedException();
+                }
+            }
+            return values;
+        }
+
+        private Geometry GetGeometry(XElement element, GpxFeatureClass featureClass)
+        {
+            switch (featureClass.GeometryType)
+            {
+                case GeometryType.Point:
+                    return BuildPoint(element);
+                case GeometryType.Polyline:
+                    return BuildPoly(element, false);
+                case GeometryType.Polygon:
+                    return BuildPoly(element, true);
+                case GeometryType.Unknown:
+                case GeometryType.Envelope:
+                case GeometryType.Multipoint:
+                case GeometryType.Multipatch:
+                case GeometryType.GeometryBag:
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        private static string GetStringElement(XElement element, string name)
+        {
+            var v = element.GetElement(name);
+            if (v == null) { return null; }
+            //FIXME - omit the surrounding <extension> tag; only provide the child elements
+            if (name == "extensions") { return v.ToString(); }
+            if (name == "link") { return (string)v.Attribute("href"); }
+            return v.Value;
+        }
+
+        private static double? GetSafeDoubleElement(XElement element, string name)
+        {
+            try
+            {
+                return (double?)element.GetElement(name);
+            }
+            catch (FormatException)
+            {
+                return null;
+            }
+        }
+
+        private static int? GetSafeIntElement(XElement element, string name)
+        {
+            try
+            {
+                return (int?)element.GetElement(name);
+            }
+            catch (FormatException)
+            {
+                return null;
+            }
+        }
+
+        private static DateTime? GetSafeDateTimeElement(XElement element, string name)
+        {
+            try
+            {
+                return (DateTime?)element.GetElement(name);
+            }
+            catch (FormatException)
+            {
+                return null;
+            }
+        }
+
+        #region Geometry construction
+
+        private Geometry BuildPoly(XElement xElement, bool close)
+        {
+            if (xElement.Name.LocalName == "rte")
+                return BuildSegment("rtept", xElement, close);
+            if (xElement.Name.LocalName == "trk")
+                return BuildTrack(xElement, close);
+            return null;
+        }
+
+        private Geometry BuildTrack(XElement xElement, bool close)
+        {
+            foreach (var ele in xElement.GetElements("trkseg"))
+            {
+                //TODO: Implement
+                
+                //IGeometry path;
+                //if (close)
+                //    path = new RingClass();
+                //else
+                //    path = new PathClass();
+                //path.SpatialReference = ((IGeometry)paths).SpatialReference;
+                //BuildSegment("trkpt", (IPointCollection)path, ele, close);
+                //paths.AddGeometry(path);
+            }
+            return null;
+        }
+
+        private Geometry BuildSegment(string pointName, XElement xElement, bool close)
+        {
+            //TODO: Implement
+
+            //object missing = Type.Missing;
+            //IPoint point = new PointClass();
+
+            //foreach (var ele in xElement.GetElements(pointName))
+            //{
+            //    BuildPoint(point, ele);
+            //    points.AddPoint(point); //, ref missing, ref missing);
+            //}
+            //if (close)
+            //    points.AddPoint(points.Point[0]); //, ref missing, ref missing);
+            return null;
+        }
+
+        private MapPoint BuildPoint(XElement ele)
+        {
+            double? x = GetSafeDoubleAttribute(ele, "lon");
+            double? y = GetSafeDoubleAttribute(ele, "lat");
+            double? z = GetSafeDoubleElement(ele, "ele");
+            if (!x.HasValue || y.HasValue)
+            {
+                MapPointBuilder.CreateMapPoint(SpatialReferences.WGS84);
+            }
+            if (!z.HasValue)
+            {
+                MapPointBuilder.CreateMapPoint(x.Value, y.Value, SpatialReferences.WGS84);
+            }
+            return MapPointBuilder.CreateMapPoint(x.Value, y.Value, z.Value, SpatialReferences.WGS84);
+        }
+
+        #endregion
+
+        #endregion
     }
+
+    static class XmlToLinqExtensions
+    {
+        public static XElement GetElement(this XElement element, string name)
+        {
+            return element.Element(element.GetDefaultNamespace() + name);
+        }
+
+        public static IEnumerable<XElement> GetElements(this XElement element, string name)
+        {
+            return element.Elements(element.GetDefaultNamespace() + name);
+        }
+    }
+
 }
