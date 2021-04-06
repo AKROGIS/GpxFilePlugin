@@ -420,9 +420,9 @@ namespace GpxPluginPro
                 case GeometryType.Point:
                     return BuildPoint(element);
                 case GeometryType.Polyline:
-                    return BuildPoly(element, false);
+                    return BuildPolyline(element);
                 case GeometryType.Polygon:
-                    return BuildPoly(element, true);
+                    return BuildPolygon(element);
                 case GeometryType.Unknown:
                 case GeometryType.Envelope:
                 case GeometryType.Multipoint:
@@ -481,48 +481,45 @@ namespace GpxPluginPro
 
         #region Geometry construction
 
-        private Geometry BuildPoly(XElement xElement, bool close)
+        private Polygon BuildPolygon(XElement xElement)
         {
             if (xElement.Name.LocalName == "rte")
-                return BuildSegment("rtept", xElement, close);
+                return PolygonBuilder.CreatePolygon(BuildSegment("rtept", xElement));
             if (xElement.Name.LocalName == "trk")
-                return BuildTrack(xElement, close);
-            return null;
-        }
-
-        private Geometry BuildTrack(XElement xElement, bool close)
-        {
-            foreach (var ele in xElement.GetElements("trkseg"))
             {
-                //TODO: Implement
-                
-                //IGeometry path;
-                //if (close)
-                //    path = new RingClass();
-                //else
-                //    path = new PathClass();
-                //path.SpatialReference = ((IGeometry)paths).SpatialReference;
-                //BuildSegment("trkpt", (IPointCollection)path, ele, close);
-                //paths.AddGeometry(path);
+                var polygons = BuildTracks(xElement).Select(p => PolygonBuilder.CreatePolygon(p));
+                return PolygonBuilder.CreatePolygon(polygons);
             }
             return null;
         }
 
-        private Geometry BuildSegment(string pointName, XElement xElement, bool close)
+        private Polyline BuildPolyline(XElement xElement)
         {
-            //TODO: Implement
-
-            //object missing = Type.Missing;
-            //IPoint point = new PointClass();
-
-            //foreach (var ele in xElement.GetElements(pointName))
-            //{
-            //    BuildPoint(point, ele);
-            //    points.AddPoint(point); //, ref missing, ref missing);
-            //}
-            //if (close)
-            //    points.AddPoint(points.Point[0]); //, ref missing, ref missing);
+            if (xElement.Name.LocalName == "rte")
+                return BuildSegment("rtept", xElement);
+            if (xElement.Name.LocalName == "trk")
+                return PolylineBuilder.CreatePolyline(BuildTracks(xElement));
             return null;
+        }
+
+        private Collection<Polyline> BuildTracks(XElement xElement)
+        {
+            var tracks = new Collection<Polyline>();
+            foreach (var ele in xElement.GetElements("trkseg"))
+            {
+                tracks.Add(BuildSegment("trkpt", ele));
+            }
+            return tracks;
+        }
+
+        private Polyline BuildSegment(string pointName, XElement xElement)
+        {
+            var points = new Collection<MapPoint>();
+            foreach (var ele in xElement.GetElements(pointName))
+            {
+                points.Add(BuildPoint(ele));
+            }
+            return PolylineBuilder.CreatePolyline(points);
         }
 
         private MapPoint BuildPoint(XElement ele)
