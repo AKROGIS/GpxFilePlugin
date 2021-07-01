@@ -123,8 +123,21 @@
     <AddInContent Include="DarkImages\AddInDesktop32.png" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GpxCatalogItem.cs" />
     <Compile Include="Module1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\BexDog16.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\BexDog32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="DarkImages\BexDog16.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="DarkImages\BexDog32.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!--
