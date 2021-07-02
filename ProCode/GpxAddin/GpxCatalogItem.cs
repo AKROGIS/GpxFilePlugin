@@ -87,26 +87,34 @@ namespace GpxAddin
             //MessageBox.Show($"Selected Custom Item: {item.Name}");
             QueuedTask.Run(() =>
             {
-                var conGpx = new PluginDatasourceConnectionPath("GpxPlugin_Datasource",
-                     new Uri(item.Path, UriKind.Absolute));
-                // because a GPX file can have several "feature classes" they are added to a group layer
-                // MapView.Active may be a 2D map or a 3D scene
-                var groupLayer = LayerFactory.Instance.CreateGroupLayer(MapView.Active.Map, 0, Path.GetFileNameWithoutExtension(item.Path));
-                ArcGIS.Core.Geometry.Envelope zoomToEnv = null;
-                using (var pluginGpx = new PluginDatastore(conGpx))
+                try
                 {
-                    System.Diagnostics.Debug.Write($"Table: {item.Path}\r\n");
-                    foreach (var tn in pluginGpx.GetTableNames())
+                    ArcGIS.Core.Geometry.Envelope zoomToEnv = null;
+                    var connection = new PluginDatasourceConnectionPath("GpxPlugin_Datasource",
+                         new Uri(item.Path, UriKind.Absolute));
+                    using (var pluginGpx = new PluginDatastore(connection))
                     {
-                        using (var table = pluginGpx.OpenTable(tn))
+                        // because a GPX file can have several "feature classes" they are added to a group layer
+                        // MapView.Active may be a 2D map or a 3D scene
+                        var groupLayer = LayerFactory.Instance.CreateGroupLayer(MapView.Active.Map, 0, Path.GetFileNameWithoutExtension(item.Path));
+                        foreach (var tn in pluginGpx.GetTableNames())
                         {
-                            //Add feature class to the group layer
-                            LayerFactory.Instance.CreateFeatureLayer((FeatureClass)table, groupLayer);
-                            zoomToEnv = ((FeatureClass)table).GetExtent().Clone() as ArcGIS.Core.Geometry.Envelope;
+                            using (var table = pluginGpx.OpenTable(tn))
+                            {
+                                //Add feature class to the group layer
+                                LayerFactory.Instance.CreateFeatureLayer((FeatureClass)table, groupLayer);
+                                zoomToEnv = ((FeatureClass)table).GetExtent().Clone() as ArcGIS.Core.Geometry.Envelope;
+                            }
                         }
                     }
+                    if (zoomToEnv != null) MapView.Active.ZoomToAsync(zoomToEnv);
                 }
-                if (zoomToEnv != null) MapView.Active.ZoomToAsync(zoomToEnv);
+                catch
+                {
+                    // If there is an exception loading the GPX file, The exception comes the plugin loader and isn't helpful.
+                    MessageBox.Show($"{item.Name} is not a valid GPX file.", "Error",
+                        System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Error);
+                }
             });
         }
     }
