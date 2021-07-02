@@ -527,13 +527,13 @@ namespace GpxPluginPro
             double? x = GetSafeDoubleAttribute(ele, "lon");
             double? y = GetSafeDoubleAttribute(ele, "lat");
             double? z = GetSafeDoubleElement(ele, "ele");
-            if (!x.HasValue || y.HasValue)
+            if (!x.HasValue || !y.HasValue)
             {
-                MapPointBuilder.CreateMapPoint(SpatialReferences.WGS84);
+                return MapPointBuilder.CreateMapPoint(SpatialReferences.WGS84);
             }
             if (!z.HasValue)
             {
-                MapPointBuilder.CreateMapPoint(x.Value, y.Value, SpatialReferences.WGS84);
+                return MapPointBuilder.CreateMapPoint(x.Value, y.Value, SpatialReferences.WGS84);
             }
             return MapPointBuilder.CreateMapPoint(x.Value, y.Value, z.Value, SpatialReferences.WGS84);
         }

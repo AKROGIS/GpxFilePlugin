@@ -68,23 +68,27 @@ namespace GpxPluginPro
         {
             // queryFilter will never be null; it should never have a WhereClause
             // We need to support OIFields and SpatialReference
-            if (queryFilter.WhereClause != null || queryFilter.PrefixClause != null || queryFilter.PostfixClause != null)
-                throw new NotImplementedException("Where/Prefix/PostfixClause");
+            if (!string.IsNullOrWhiteSpace(queryFilter.WhereClause))
+                throw new NotImplementedException("Query Filter Where Clause");
+            if (!string.IsNullOrWhiteSpace(queryFilter.PrefixClause))
+                throw new NotImplementedException("Query Filter Prefix Clause");
+            if (!string.IsNullOrWhiteSpace(queryFilter.PostfixClause))
+                throw new NotImplementedException("Query Filter Postfix Clause");
             rows = _featureClass.Rows;
-            if (queryFilter.ObjectIDs != null)
+            if (queryFilter.ObjectIDs.Count > 0)
             {
                 //TODO: Implement
                 throw new NotImplementedException("Filter search by OID");
                 //rows = filterByOID(rows, queryFilter.ObjectIDs);
             }
-            if (queryFilter.SubFields != null)
+            if (queryFilter.SubFields != "*")
             {
                 //TODO: Implement
                 throw new NotImplementedException("Filter search by Subfield");
                 //rows = TransformRows(rows, queryFilter.SubFields);
             }
 
-            if (queryFilter.OutputSpatialReference != null)
+            if (queryFilter.OutputSpatialReference != null && !queryFilter.OutputSpatialReference.Equals(SpatialReferences.WGS84))
             {
                 //TODO: Implement
                 throw new NotImplementedException("Project search");
@@ -96,8 +100,8 @@ namespace GpxPluginPro
         private IEnumerable<Collection<object>> FilterByGeometry(IEnumerable<Collection<object>> rows, SpatialQueryFilter spatialQueryFilter)
         {
             //TODO: Implement
-            throw new NotImplementedException("Spatial Query");
-            // return rows;
+            //throw new NotImplementedException("Spatial Query");
+            return rows;
         }
 
     }
