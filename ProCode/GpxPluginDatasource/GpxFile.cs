@@ -20,6 +20,11 @@ namespace GpxPluginPro
         private XElement _xmlRoot;
         private XNamespace _xmlNamespace;
 
+        // Optimization for other code in this plugin that needs to know where the OID and Shape fields are in the row
+        // Coordinate with BuildFields()
+        public static readonly int OidIndex = 0;
+        public static readonly int ShapeIndex = 1;
+
         internal static bool HasCorrectExtension(Uri uri)
         {
             var builder = new UriBuilder(uri);
@@ -182,7 +187,7 @@ namespace GpxPluginPro
         //TODO - Option 2 - Scan file and only use fields used in this file.
         //var search = Root.Descendants(_ns + type.Path);
 
-        //IMPORTANT: Other code in this plugin assume that the OID is field 0, and the Shape is field 1 (ArcGIS doesn't care about the ordering)
+        //IMPORTANT: static fields OidIndex and ShapeIndex assume that the OID is field 0, and the Shape is field 1 (ArcGIS doesn't care about the ordering)
         //IMPORTANT: the field.Name (Except OID and SHAPE) must be the exact same as the XML element name to look up the correct attribute value 
 
         private Collection<PluginField> BuildFields(GpxFeatureClass featureClass)
@@ -365,7 +370,7 @@ namespace GpxPluginPro
         {
             var rows = new Collection<Collection<object>>();
             var records = _xmlRoot.Descendants().Where(e => e.Name == _xmlNamespace + featureClass.Path);
-            var oid = 1;
+            long oid = 1;
             foreach (var record in records)
             {
                 rows.Add(GetValues(oid, record, featureClass));
@@ -374,7 +379,7 @@ namespace GpxPluginPro
             return rows;
         }
 
-        private Collection<object> GetValues(int oid, XElement row, GpxFeatureClass featureClass)
+        private Collection<object> GetValues(long oid, XElement row, GpxFeatureClass featureClass)
         {
             var values = new Collection<object>();
             foreach (var field in featureClass.Fields)

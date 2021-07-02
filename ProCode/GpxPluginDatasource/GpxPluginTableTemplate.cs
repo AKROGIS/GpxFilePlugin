@@ -61,13 +61,21 @@ namespace GpxPluginPro
             var rows = (spatialQueryFilter.SearchOrder == SearchOrder.Attribute)
                 ? FilterByGeometry(FilterByAttribute(_featureClass.Rows, spatialQueryFilter), spatialQueryFilter)
                 : FilterByAttribute(FilterByGeometry(_featureClass.Rows, spatialQueryFilter), spatialQueryFilter);
+            
+            if (spatialQueryFilter.OutputSpatialReference != null &&
+                !spatialQueryFilter.OutputSpatialReference.Equals(SpatialReferences.WGS84))
+            {
+                rows = Projected(rows, spatialQueryFilter.OutputSpatialReference);
+            }
             return new GpxPluginCursorTemplate(rows.ToArray());
         }
 
         private IEnumerable<Collection<object>> FilterByAttribute(IEnumerable<Collection<object>> rows, QueryFilter queryFilter)
         {
-            // queryFilter will never be null; it should never have a WhereClause
+            // This plugin does not support Where, Prefix or Postfix clauses (IsQueryLanguageSupported == false)
             // We need to support OIFields and SpatialReference
+            if (queryFilter == null)
+                throw new ArgumentNullException("queryFilter");
             if (!string.IsNullOrWhiteSpace(queryFilter.WhereClause))
                 throw new NotImplementedException("Query Filter Where Clause");
             if (!string.IsNullOrWhiteSpace(queryFilter.PrefixClause))
@@ -75,33 +83,74 @@ namespace GpxPluginPro
             if (!string.IsNullOrWhiteSpace(queryFilter.PostfixClause))
                 throw new NotImplementedException("Query Filter Postfix Clause");
             rows = _featureClass.Rows;
-            if (queryFilter.ObjectIDs.Count > 0)
+            if (queryFilter.ObjectIDs.Count > 0 && queryFilter.ObjectIDs.Count < rows.Count())
             {
-                //TODO: Implement
-                throw new NotImplementedException("Filter search by OID");
-                //rows = filterByOID(rows, queryFilter.ObjectIDs);
+                rows = FilterByOid(rows, queryFilter.ObjectIDs);
             }
             if (queryFilter.SubFields != "*")
             {
-                //TODO: Implement
-                throw new NotImplementedException("Filter search by Subfield");
-                //rows = TransformRows(rows, queryFilter.SubFields);
-            }
-
-            if (queryFilter.OutputSpatialReference != null && !queryFilter.OutputSpatialReference.Equals(SpatialReferences.WGS84))
-            {
-                //TODO: Implement
-                throw new NotImplementedException("Project search");
-                //rows = TransformRows(rows, queryFilter.SubFields);
+                // SubFields is an optional optimization (see https://pro.arcgis.com/en/pro-app/latest/sdk/api-reference/#topic7549.html)
+                // It is faster for this provider to do nothing and return all fields
             }
             return rows;
         }
 
+        private IEnumerable<Collection<object>> FilterByOid(IEnumerable<Collection<object>> rows, IReadOnlyList<long> oids)
+        {
+            var oidSet = new HashSet<long>(oids);
+            var filtered = rows.Where(row => {
+                var oid = (long)row[GpxFile.OidIndex];
+                return oidSet.Contains(oid);
+            });
+            return filtered;
+        }
+
         private IEnumerable<Collection<object>> FilterByGeometry(IEnumerable<Collection<object>> rows, SpatialQueryFilter spatialQueryFilter)
         {
-            //TODO: Implement
-            //throw new NotImplementedException("Spatial Query");
-            return rows;
+            var filtered = rows.Where(row => {
+                var shape = row[GpxFile.ShapeIndex] as Geometry;
+                return HasRelationship(GeometryEngine.Instance, spatialQueryFilter.FilterGeometry, shape, spatialQueryFilter.SpatialRelationship);
+            });
+            return filtered;
+        }
+
+        private IEnumerable<Collection<object>> Projected(IEnumerable<Collection<object>> rows, SpatialReference spatialRefernce)
+        {
+            var projectedRows = rows.Select(row =>
+            {
+                var shape = row[GpxFile.ShapeIndex] as Geometry;
+                shape = GeometryEngine.Instance.Project(shape, spatialRefernce);
+                row[GpxFile.ShapeIndex] = shape;
+                return row;
+            });
+            return projectedRows;
+        }
+
+        private static bool HasRelationship(IGeometryEngine engine,
+                                  Geometry geom1,
+                                  Geometry geom2,
+                                  SpatialRelationship relationship)
+        {
+            switch (relationship)
+            {
+                case SpatialRelationship.Intersects:
+                    return engine.Intersects(geom1, geom2);
+                case SpatialRelationship.IndexIntersects:
+                    return engine.Intersects(geom1, geom2);
+                case SpatialRelationship.EnvelopeIntersects:
+                    return engine.Intersects(geom1.Extent, geom2.Extent);
+                case SpatialRelationship.Contains:
+                    return engine.Contains(geom1, geom2);
+                case SpatialRelationship.Crosses:
+                    return engine.Crosses(geom1, geom2);
+                case SpatialRelationship.Overlaps:
+                    return engine.Overlaps(geom1, geom2);
+                case SpatialRelationship.Touches:
+                    return engine.Touches(geom1, geom2);
+                case SpatialRelationship.Within:
+                    return engine.Within(geom1, geom2);
+            }
+            return false;//unknown relationship
         }
 
     }
