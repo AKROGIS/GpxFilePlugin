@@ -1,10 +1,10 @@
 ﻿<ArcGIS defaultAssembly="GpxAddin.dll" defaultNamespace="GpxAddin" xmlns="http://schemas.esri.com/DADF/Registry" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schemas.esri.com/DADF/Registry file:///C:/Program%20Files/ArcGIS/Pro/bin/ArcGIS.Desktop.Framework.xsd">
   <AddInInfo id="{b759e46b-0338-4725-a46b-741c4e863c2f}" version="1.0" desktopVersion="2.7.26828">
-    <Name>GpxAddin</Name>
-    <Description>GpxAddin description</Description>
-    <Image>Images\AddinDesktop32.png</Image>
-    <Author>RESarwas</Author>
-    <Company>Acme</Company>
+    <Name>GPX Reader</Name>
+    <Description>Allows adding GPX files to a map as a readonly data source.</Description>
+    <Image>Images\gps32.png</Image>
+    <Author>Alaska Region GIS Team</Author>
+    <Company>National Park Service</Company>
     <Date>7/1/2021 12:20:50 PM</Date>
     <Subject>Framework</Subject>
     <!-- Note subject can be one or more of these topics:
@@ -12,28 +12,17 @@
   </AddInInfo>
   <modules>
     <insertModule id="GpxAddin_Module" className="Module1" autoLoad="false" caption="Module1">
-      <!-- uncomment to have the control hosted on a separate tab-->
-      <tabs>
-        <!--<tab id="GpxAddin_Tab1" caption="New Tab">
-          <group refID="GpxAddin_Group1"/>
-        </tab>-->
-      </tabs>
-      <groups>
-        <!-- comment this out if you have no controls on the Addin tab to avoid
-              an empty group-->
-        <group id="GpxAddin_Group1" caption="Group 1" appearsOnAddInTab="true">
-          <button refID="GpxAddin_GpxCatalogItem_ShowItemName" />
-        </group>
-      </groups>
       <controls>
         <!-- add your controls here -->
-        <button id="GpxAddin_GpxCatalogItem_ShowItemName" caption="Add to map" className="ShowItemNameGpxCatalogItem" loadOnClick="true" smallImage="pack://application:,,,/ArcGIS.Desktop.Resources;component/Images/GenericButtonBlue16.png" largeImage="pack://application:,,,/ArcGIS.Desktop.Resources;component/Images/GenericButtonBlue32.png">
-          <tooltip heading="Add to map">Add the GPX file to the active map or scene.<disabledText /></tooltip>
+        <button id="GpxAddin_GpxCatalogItem_AddToMap" caption="Add to map" className="ShowItemNameGpxCatalogItem" loadOnClick="true" smallImage="Images/gpx16.png" largeImage="Images/gpx32.png" keytip="g">
+          <tooltip heading="Add to map">Add the GPX file to the active map or scene.
+            <disabledText />
+          </tooltip>
         </button>
       </controls>
       <menus>
         <menu id="GpxAddin_GpxCatalogItem_ContextMenu" caption="GpxCatalogItem_Menu">
-          <button refID="GpxAddin_GpxCatalogItem_ShowItemName" />
+          <button refID="GpxAddin_GpxCatalogItem_AddToMap" />
         </menu>
       </menus>
     </insertModule>

@@ -50,7 +50,7 @@ namespace GpxAddin
         {
             get
             {
-                var largeImg = new BitmapImage(new Uri(@"pack://application:,,,/GpxAddin;component/Images/BexDog32.png"));
+                var largeImg = new BitmapImage(new Uri(@"pack://application:,,,/GpxAddin;component/Images/gpx32.png"));
                 return largeImg;
             }
         }
@@ -59,7 +59,7 @@ namespace GpxAddin
         {
             get
             {
-                var smallImage = new BitmapImage(new Uri(@"pack://application:,,,/GpxAddin;component/Images/BexDog16.png"));
+                var smallImage = new BitmapImage(new Uri(@"pack://application:,,,/GpxAddin;component/Images/gpx16.png"));
                 if (smallImage == null) throw new ArgumentException("SmallImage for CustomItem doesn't exist");
                 return Task.FromResult(smallImage as ImageSource);
             }
