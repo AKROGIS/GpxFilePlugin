@@ -27,8 +27,8 @@
       </groups>
       <controls>
         <!-- add your controls here -->
-        <button id="GpxAddin_GpxCatalogItem_ShowItemName" caption="Show item name" className="ShowItemNameGpxCatalogItem" loadOnClick="true" smallImage="pack://application:,,,/ArcGIS.Desktop.Resources;component/Images/GenericButtonBlue16.png" largeImage="pack://application:,,,/ArcGIS.Desktop.Resources;component/Images/GenericButtonBlue32.png">
-          <tooltip heading="Tooltip Heading">Tooltip text<disabledText /></tooltip>
+        <button id="GpxAddin_GpxCatalogItem_ShowItemName" caption="Add to map" className="ShowItemNameGpxCatalogItem" loadOnClick="true" smallImage="pack://application:,,,/ArcGIS.Desktop.Resources;component/Images/GenericButtonBlue16.png" largeImage="pack://application:,,,/ArcGIS.Desktop.Resources;component/Images/GenericButtonBlue32.png">
+          <tooltip heading="Add to map">Add the GPX file to the active map or scene.<disabledText /></tooltip>
         </button>
       </controls>
       <menus>
