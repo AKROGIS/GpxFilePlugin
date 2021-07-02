@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GpxPluginDatasource", "GpxPluginDatasource\GpxPluginDatasource.csproj", "{4EC4DC8C-8583-4B4F-8B00-9340583F89EB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GpxAddin", "GpxAddin\GpxAddin.csproj", "{B759E46B-0338-4725-A46B-741C4E863C2F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4EC4DC8C-8583-4B4F-8B00-9340583F89EB} = {4EC4DC8C-8583-4B4F-8B00-9340583F89EB}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
