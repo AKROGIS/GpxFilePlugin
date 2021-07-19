@@ -1,5 +1,5 @@
 ﻿<ArcGIS defaultAssembly="GpxAddin.dll" defaultNamespace="GpxAddin" xmlns="http://schemas.esri.com/DADF/Registry" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schemas.esri.com/DADF/Registry file:///C:/Program%20Files/ArcGIS/Pro/bin/ArcGIS.Desktop.Framework.xsd">
-  <AddInInfo id="{b759e46b-0338-4725-a46b-741c4e863c2f}" version="1.0" desktopVersion="2.7.26828">
+  <AddInInfo id="{b759e46b-0338-4725-a46b-741c4e863c2f}" version="1.0" desktopVersion="2.5">
     <Name>GPX Reader</Name>
     <Description>Allows adding GPX files to a map as a readonly data source.</Description>
     <Image>Images\gps32.png</Image>

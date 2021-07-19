@@ -10,7 +10,7 @@
   <Company>National Park Service</Company>
   <Date>4/1/2021 10:27:09 AM</Date>
   <Targets>
-    <Target name="ArcGISPro" version="2.7" />
+    <Target name="ArcGISPro" version="2.5" />
   </Targets>
   <!-- CLR should be set to the 4.8 set in the .csproj -->
   <AddIn language="CLR4.8" library="GpxPluginPro.dll" namespace="GpxPluginPro">
